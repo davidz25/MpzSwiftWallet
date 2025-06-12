@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		7B180ECC2E0CA0E400396990 /* Multipaz in Frameworks */ = {isa = PBXBuildFile; productRef = 7B180ECB2E0CA0E400396990 /* Multipaz */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		7B0029032DFB17B8007ADB13 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -22,6 +26,19 @@
 			remoteInfo = MpzSwiftWallet;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7B00295A2DFB5EED007ADB13 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		7B0028F52DFB17B7007ADB13 /* MpzSwiftWallet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MpzSwiftWallet.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -52,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B180ECC2E0CA0E400396990 /* Multipaz in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +120,7 @@
 				7B0028F12DFB17B7007ADB13 /* Sources */,
 				7B0028F22DFB17B7007ADB13 /* Frameworks */,
 				7B0028F32DFB17B7007ADB13 /* Resources */,
+				7B00295A2DFB5EED007ADB13 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -112,6 +131,7 @@
 			);
 			name = MpzSwiftWallet;
 			packageProductDependencies = (
+				7B180ECB2E0CA0E400396990 /* Multipaz */,
 			);
 			productName = MpzSwiftWallet;
 			productReference = 7B0028F52DFB17B7007ADB13 /* MpzSwiftWallet.app */;
@@ -195,6 +215,9 @@
 			);
 			mainGroup = 7B0028EC2DFB17B7007ADB13;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7B180ECA2E0CA0E400396990 /* XCRemoteSwiftPackageReference "identity-credential" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7B0028F62DFB17B7007ADB13 /* Products */;
 			projectDirPath = "";
@@ -395,8 +418,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This application uses Bluetooth Low Energy to communicate with mdoc readers";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "This application uses Face ID to protect device-bound credential keys";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -422,8 +448,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This application uses Bluetooth Low Energy to communicate with mdoc readers";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "This application uses Face ID to protect device-bound credential keys";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -550,6 +579,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7B180ECA2E0CA0E400396990 /* XCRemoteSwiftPackageReference "identity-credential" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/openwallet-foundation-labs/identity-credential/";
+			requirement = {
+				kind = exactVersion;
+				version = 0.92.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7B180ECB2E0CA0E400396990 /* Multipaz */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7B180ECA2E0CA0E400396990 /* XCRemoteSwiftPackageReference "identity-credential" */;
+			productName = Multipaz;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7B0028ED2DFB17B7007ADB13 /* Project object */;
 }
