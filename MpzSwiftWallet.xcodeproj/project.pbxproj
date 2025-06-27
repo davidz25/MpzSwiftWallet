@@ -96,6 +96,7 @@
 				7B0028F72DFB17B7007ADB13 /* MpzSwiftWallet */,
 				7B0029052DFB17B8007ADB13 /* MpzSwiftWalletTests */,
 				7B00290F2DFB17B8007ADB13 /* MpzSwiftWalletUITests */,
+				7B180EF12E0F04EC00396990 /* Frameworks */,
 				7B0028F62DFB17B7007ADB13 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -108,6 +109,13 @@
 				7B00290C2DFB17B8007ADB13 /* MpzSwiftWalletUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		7B180EF12E0F04EC00396990 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -586,7 +594,7 @@
 			repositoryURL = "https://github.com/openwallet-foundation-labs/identity-credential/";
 			requirement = {
 				kind = exactVersion;
-				version = 0.92.0;
+				version = 0.92.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

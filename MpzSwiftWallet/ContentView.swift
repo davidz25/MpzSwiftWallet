@@ -20,8 +20,8 @@ struct WalletData {
     @State var presentmentState = PresentmentModel.State.idle
     
     init() async {
-        storage = try! await Platform.shared.getNonBackedUpStorage()
-        secureArea = try! await Platform.shared.getSecureArea(storage: storage)
+        storage = Platform.shared.nonBackedUpStorage
+        secureArea = try! await Platform.shared.getSecureArea()
         secureAreaRepository = SecureAreaRepository.Builder()
             .add(secureArea: secureArea)
             .build()
@@ -35,10 +35,7 @@ struct WalletData {
             let now = ClockSystem.shared.now()
             let signedAt = now
             let validFrom = now
-            //let validUntil = now.plus(value: 365, unit: DateTimeUnit.TimeBased(nanoseconds: 86400*1000*1000*1000))
             let validUntil = now.plus(duration: 365*86400*1000*1000*1000)
-            print("validFrom: \(validFrom)")
-            print("validUntil: \(validUntil)")
             let iacaKey = Crypto.shared.createEcPrivateKey(curve: EcCurve.p256)
             let iacaCert = MdocUtil.shared.generateIacaCertificate(
                 iacaKey: iacaKey,
@@ -104,7 +101,7 @@ struct WalletData {
             certificate: owfMultipazReaderRootCert,
             displayName: "OWF Multipaz TestApp",
             displayIcon: nil,
-            privacyPolicyUrl: nil
+            privacyPolicyUrl: "https://apps.multipaz.org"
         ))
     }
 }
@@ -115,18 +112,6 @@ var walletData: WalletData? = nil
 struct ContentView: View {
     @State private var presentmentState: PresentmentModel.State = .idle
     @State private var qrCode: UIImage? = nil
-    
-    init() {
-        initWalletData()
-    }
-    
-    func initWalletData() {
-        Task {
-            //walletData = await WalletData()
-            //await walletData!.listenForStateChange()
-            //walletData?.presentmentModel.state.
-        }
-    }
     
     var body: some View {
         VStack {
