@@ -216,7 +216,7 @@
 			mainGroup = 7B0028EC2DFB17B7007ADB13;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				7BEFDF602DFC8ED7007AAE5D /* XCRemoteSwiftPackageReference "identity-credential" */,
+				7BEFDF602DFC8ED7007AAE5D /* XCRemoteSwiftPackageReference "multipaz" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7B0028F62DFB17B7007ADB13 /* Products */;
@@ -581,12 +581,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		7BEFDF602DFC8ED7007AAE5D /* XCRemoteSwiftPackageReference "identity-credential" */ = {
+		7BEFDF602DFC8ED7007AAE5D /* XCRemoteSwiftPackageReference "multipaz" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/openwallet-foundation-labs/identity-credential/";
+			repositoryURL = "https://github.com/openwallet-foundation/multipaz";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = exactVersion;
+				version = 0.93.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -594,7 +594,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		7BEFDF612DFC8ED7007AAE5D /* Multipaz */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7BEFDF602DFC8ED7007AAE5D /* XCRemoteSwiftPackageReference "identity-credential" */;
+			package = 7BEFDF602DFC8ED7007AAE5D /* XCRemoteSwiftPackageReference "multipaz" */;
 			productName = Multipaz;
 		};
 /* End XCSwiftPackageProductDependency section */

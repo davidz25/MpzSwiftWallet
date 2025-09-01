@@ -14,14 +14,13 @@ struct WalletData {
     let secureAreaRepository: SecureAreaRepository
     let documentTypeRepository: DocumentTypeRepository
     let documentStore: DocumentStore
-    let readerTrustManager: TrustManager
+    let readerTrustManager: TrustManagerLocal
 
     let presentmentModel = PresentmentModel()
-    @State var presentmentState = PresentmentModel.State.idle
     
     init() async {
-        storage = try! await Platform.shared.getNonBackedUpStorage()
-        secureArea = try! await Platform.shared.getSecureArea(storage: storage)
+        storage = Platform.shared.nonBackedUpStorage
+        secureArea = try! await Platform.shared.getSecureArea()
         secureAreaRepository = SecureAreaRepository.Builder()
             .add(secureArea: secureArea)
             .build()
@@ -32,13 +31,10 @@ struct WalletData {
             secureAreaRepository: secureAreaRepository
         ).build()
         if (try! await documentStore.listDocuments().isEmpty) {
-            let now = ClockSystem.shared.now()
+            let now = KotlinClockCompanion().getSystem().now()
             let signedAt = now
             let validFrom = now
-            //let validUntil = now.plus(value: 365, unit: DateTimeUnit.TimeBased(nanoseconds: 86400*1000*1000*1000))
             let validUntil = now.plus(duration: 365*86400*1000*1000*1000)
-            print("validFrom: \(validFrom)")
-            print("validUntil: \(validUntil)")
             let iacaKey = Crypto.shared.createEcPrivateKey(curve: EcCurve.p256)
             let iacaCert = MdocUtil.shared.generateIacaCertificate(
                 iacaKey: iacaKey,
@@ -82,29 +78,65 @@ struct WalletData {
                 expectedUpdate: nil,
                 domain: "mdoc")
         }
-        let owfMultipazReaderRootCert = X509Cert.companion.fromPem(
-            pemEncoding: """
-                -----BEGIN CERTIFICATE-----
-                MIICUTCCAdegAwIBAgIQppKZHI1iPN290JKEA79OpzAKBggqhkjOPQQDAzArMSkwJwYDVQQDDCBP
-                V0YgTXVsdGlwYXogVGVzdEFwcCBSZWFkZXIgUm9vdDAeFw0yNDEyMDEwMDAwMDBaFw0zNDEyMDEw
-                MDAwMDBaMCsxKTAnBgNVBAMMIE9XRiBNdWx0aXBheiBUZXN0QXBwIFJlYWRlciBSb290MHYwEAYH
-                KoZIzj0CAQYFK4EEACIDYgAE+QDye70m2O0llPXMjVjxVZz3m5k6agT+wih+L79b7jyqUl99sbeU
-                npxaLD+cmB3HK3twkA7fmVJSobBc+9CDhkh3mx6n+YoH5RulaSWThWBfMyRjsfVODkosHLCDnbPV
-                o4G/MIG8MA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAGAQH/AgEAMFYGA1UdHwRPME0wS6BJ
-                oEeGRWh0dHBzOi8vZ2l0aHViLmNvbS9vcGVud2FsbGV0LWZvdW5kYXRpb24tbGFicy9pZGVudGl0
-                eS1jcmVkZW50aWFsL2NybDAdBgNVHQ4EFgQUq2Ub4FbCkFPx3X9s5Ie+aN5gyfUwHwYDVR0jBBgw
-                FoAUq2Ub4FbCkFPx3X9s5Ie+aN5gyfUwCgYIKoZIzj0EAwMDaAAwZQIxANN9WUvI1xtZQmAKS4/D
-                ZVwofqLNRZL/co94Owi1XH5LgyiBpS3E8xSxE9SDNlVVhgIwKtXNBEBHNA7FKeAxKAzu4+MUf4gz
-                8jvyFaE0EUVlS2F5tARYQkU6udFePucVdloi
-                -----END CERTIFICATE-----
-                """.trimmingCharacters(in: .whitespacesAndNewlines)
+        let ephemeralStorage = EphemeralStorage(clock: KotlinClockCompanion().getSystem())
+        readerTrustManager = TrustManagerLocal(storage: ephemeralStorage, identifier: "default", partitionId: "default_default")
+        try! await readerTrustManager.addX509Cert(
+            certificate: X509Cert.companion.fromPem(
+                pemEncoding: """
+                    -----BEGIN CERTIFICATE-----
+                    MIICYTCCAeegAwIBAgIQOSV5JyesOLKHeDc+0qmtuTAKBggqhkjOPQQDAzAzMQsw
+                    CQYDVQQGDAJVUzEkMCIGA1UEAwwbTXVsdGlwYXogSWRlbnRpdHkgUmVhZGVyIENB
+                    MB4XDTI1MDcwNTEyMjAyMVoXDTMwMDcwNTEyMjAyMVowMzELMAkGA1UEBgwCVVMx
+                    JDAiBgNVBAMMG011bHRpcGF6IElkZW50aXR5IFJlYWRlciBDQTB2MBAGByqGSM49
+                    AgEGBSuBBAAiA2IABD4UX5jabDLuRojEp9rsZkAEbP8Icuj3qN4wBUYq6UiOkoUL
+                    MOLUb+78Ygonm+sJRwqyDJ9mxYTjlqliW8PpDfulQZejZo2QGqpB9JPInkrCBol5
+                    T+0TUs0ghkE5ZQBsVKOBvzCBvDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgw
+                    BgEB/wIBADBWBgNVHR8ETzBNMEugSaBHhkVodHRwczovL2dpdGh1Yi5jb20vb3Bl
+                    bndhbGxldC1mb3VuZGF0aW9uLWxhYnMvaWRlbnRpdHktY3JlZGVudGlhbC9jcmww
+                    HQYDVR0OBBYEFM+kr4eQcxKWLk16F2RqzBxFcZshMB8GA1UdIwQYMBaAFM+kr4eQ
+                    cxKWLk16F2RqzBxFcZshMAoGCCqGSM49BAMDA2gAMGUCMQCQ+4+BS8yH20KVfSK1
+                    TSC/RfRM4M9XNBZ+0n9ePg9ftXUFt5e4lBddK9mL8WznJuoCMFuk8ey4lKnb4nub
+                    v5iPIzwuC7C0utqj7Fs+qdmcWNrSYSiks2OEnjJiap1cPOPk2g==
+                    -----END CERTIFICATE-----
+                    """.trimmingCharacters(in: .whitespacesAndNewlines)
+            ),
+            metadata: TrustMetadata(
+                displayName: "Multipaz Identity Reader",
+                displayIcon: nil,
+                privacyPolicyUrl: nil,
+                testOnly: true,
+                extensions: [:]
+            )
         )
-        readerTrustManager = TrustManager()
-        readerTrustManager.addTrustPoint(trustPoint: TrustPoint(
-            certificate: owfMultipazReaderRootCert,
-            displayName: "OWF Multipaz TestApp",
-            displayIcon: nil
-        ))
+        try! await readerTrustManager.addX509Cert(
+            certificate: X509Cert.companion.fromPem(
+                pemEncoding: """
+                    -----BEGIN CERTIFICATE-----
+                    MIICiTCCAg+gAwIBAgIQQd/7PXEzsmI+U14J2cO1bjAKBggqhkjOPQQDAzBHMQsw
+                    CQYDVQQGDAJVUzE4MDYGA1UEAwwvTXVsdGlwYXogSWRlbnRpdHkgUmVhZGVyIENB
+                    IChVbnRydXN0ZWQgRGV2aWNlcykwHhcNMjUwNzE5MjMwODE0WhcNMzAwNzE5MjMw
+                    ODE0WjBHMQswCQYDVQQGDAJVUzE4MDYGA1UEAwwvTXVsdGlwYXogSWRlbnRpdHkg
+                    UmVhZGVyIENBIChVbnRydXN0ZWQgRGV2aWNlcykwdjAQBgcqhkjOPQIBBgUrgQQA
+                    IgNiAATqihOe05W3nIdyVf7yE4mHJiz7tsofcmiNTonwYsPKBbJwRTHa7AME+ToA
+                    fNhPMaEZ83lBUTBggsTUNShVp1L5xzPS+jK0tGJkR2ny9+UygPGtUZxEOulGK5I8
+                    ZId+35Gjgb8wgbwwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAw
+                    VgYDVR0fBE8wTTBLoEmgR4ZFaHR0cHM6Ly9naXRodWIuY29tL29wZW53YWxsZXQt
+                    Zm91bmRhdGlvbi1sYWJzL2lkZW50aXR5LWNyZWRlbnRpYWwvY3JsMB0GA1UdDgQW
+                    BBSbz9r9IFmXjiGGnH3Siq90geurxTAfBgNVHSMEGDAWgBSbz9r9IFmXjiGGnH3S
+                    iq90geurxTAKBggqhkjOPQQDAwNoADBlAjEAomqjfJe2k162S5Way3sEBTcj7+DP
+                    vaLJcsloEsj/HaThIsKWqQlQKxgNu1rE/XryAjB/Gq6UErgWKlspp+KpzuAAWaKk
+                    +bMjcM4aKOKOU3itmB+9jXTQ290Dc8MnWVwQBs4=
+                    -----END CERTIFICATE-----
+                    """.trimmingCharacters(in: .whitespacesAndNewlines)
+            ),
+            metadata: TrustMetadata(
+                displayName: "Multipaz Identity Reader (Untrusted Devices)",
+                displayIcon: nil,
+                privacyPolicyUrl: nil,
+                testOnly: true,
+                extensions: [:]
+            )
+        )
     }
 }
 
@@ -114,18 +146,6 @@ var walletData: WalletData? = nil
 struct ContentView: View {
     @State private var presentmentState: PresentmentModel.State = .idle
     @State private var qrCode: UIImage? = nil
-    
-    init() {
-        initWalletData()
-    }
-    
-    func initWalletData() {
-        Task {
-            //walletData = await WalletData()
-            //await walletData!.listenForStateChange()
-            //walletData?.presentmentModel.state.
-        }
-    }
     
     var body: some View {
         VStack {
@@ -222,7 +242,7 @@ struct ContentView: View {
         return VStack {
             Text("Present QR code to reader")
             if (qrCode != nil) {
-                Image(uiImage: qrCode!).padding(.all, 20)
+                Image(uiImage: qrCode!)
             }
             Button(action: {
                 walletData!.presentmentModel.reset()
@@ -237,6 +257,7 @@ struct ContentView: View {
             documentStore: walletData!.documentStore,
             documentTypeRepository: walletData!.documentTypeRepository,
             readerTrustManager: walletData!.readerTrustManager,
+            zkSystemRepository: nil,
             preferSignatureToKeyAgreement: true,
             domainMdocSignature: "mdoc",
             domainMdocKeyAgreement: nil,
@@ -267,7 +288,8 @@ struct ContentView: View {
                 Text("Unknown mdoc reader is requesting information")
                     .font(.title)
             } else {
-                Text("Trusted mdoc reader **\(consentData.trustPoint!.displayName!)** is requesting information")
+                let displayName = consentData.trustPoint?.metadata.displayName ?? "Unknown"
+                Text("Trusted mdoc reader **\(displayName)** is requesting information")
                     .font(.title)
             }
             VStack {
@@ -329,10 +351,23 @@ struct ContentView: View {
         let data = url.data(using: String.Encoding.ascii)
         if let filter = CIFilter(name: "CIQRCodeGenerator") {
             filter.setValue(data, forKey: "inputMessage")
-            let transform = CGAffineTransform(scaleX: 4, y: 4)
+            let scalingFactor = 4.0
+            let transform = CGAffineTransform(scaleX: scalingFactor, y: scalingFactor)
             if let output = filter.outputImage?.transformed(by: transform) {
+                // iOS QR Code generator doesn't add the proper Quiet Zone so we need
+                // to do this ourselves. Add four modules as required by the standard.
+                //
+                let quietZonePadding = 4*scalingFactor
                 let context = CIContext()
-                let cgImage = context.createCGImage(output, from: CGRect(x: 0, y: 0, width: output.extent.width, height: output.extent.height))
+                let cgImage = context.createCGImage(
+                    output,
+                    from: CGRect(
+                        x: -quietZonePadding,
+                        y: -quietZonePadding,
+                        width: output.extent.width + 2*quietZonePadding,
+                        height: output.extent.height + 2*quietZonePadding
+                    )
+                )
                 return UIImage(cgImage: cgImage!)
             }
         }
